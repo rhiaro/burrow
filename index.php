@@ -44,7 +44,6 @@ function discover_endpoint($url, $rel="micropub"){
     if(!isset($rels[$rel][0])){
       $parsed = json_decode(file_get_contents("https://pin13.net/mf2/?url=".$url), true);
       if(isset($parsed['rels'])){ $rels = $parsed['rels']; }
-      //$rels[$rel][0] = "parse";
     }
     if(!isset($rels[$rel][0])){
       // TODO: Try in body
@@ -79,16 +78,18 @@ function form_to_json($post){
   return $json;
 }
 
-function post_to_endpoint($json){
+function post_to_endpoint($json, $endpoint){
   return $json;
 }
 
 $locations = get_locations();
-if(isset($_SESSION['me'])){
-  $endpoint = discover_endpoint($_SESSION['me']);
-  
-  if(isset($_POST['location'])){
-    $result = post_to_endpoint(form_to_json($_POST));
+
+if(isset($_POST['location'])){
+  if(isset($_SESSION['me'])){
+    $endpoint = discover_endpoint($_SESSION['me']);
+    $result = post_to_endpoint(form_to_json($_POST), $endpoint);
+  }else{
+    $errors["Not signed in"] = "You need to sign in to post.";
   }
 }
 var_dump($_SESSION);
