@@ -6,7 +6,11 @@ $base = "localhost";
 if(isset($_GET['code'])){
   $auth = auth($_GET['code'], $_GET['state']);
   if($auth !== true){ $errors = $auth; }
-  else{ header("Location: ".$_GET['state']); }
+  else{
+    //header("Location: ".$_GET['state']);
+    $response = get_access_token($_GET['code'], $_GET['state']);
+    var_dump($response);
+  }
 }
 
 include "link-rel-parser.php";
@@ -33,6 +37,22 @@ function auth($code, $state, $client_id="https://apps.rhiaro.co.uk/burrow"){
   }else{
     return true;
   }
+}
+
+function get_access_token($code, $state, $client_id="https://apps.rhiaro.co.uk/burrow"){
+  
+  $params = "me={$_SESSION['me']}&code=$code&redirect_uri=".urlencode($state)."&state=".urlencode($state)."&client_id=$client_id";
+  $ch = curl_init("https://tokens.indieauth.com/token");
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: application/x-www-form-urlencoded"));
+  curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+  $response = Array();
+  parse_str(curl_exec($ch), $response);
+  $info = curl_getinfo($ch);
+  curl_close($ch);
+  
+  return $response;
+  
 }
 
 function discover_endpoint($url, $rel="micropub"){
@@ -141,6 +161,7 @@ var_dump($_SESSION);
             <input type="hidden" name="client_id" value="http://rhiaro.co.uk" />
             <input type="hidden" name="redirect_uri" value="<?=$base?><?=$_SERVER["REQUEST_URI"]?>" />
             <input type="hidden" name="state" value="<?=$base?><?=$_SERVER["REQUEST_URI"]?>" />
+            <input type="hidden" name="scope" value="post" />
           </form>
         <?endif?>
       </div>
