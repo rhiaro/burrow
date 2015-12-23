@@ -7,9 +7,9 @@ if(isset($_GET['code'])){
   $auth = auth($_GET['code'], $_GET['state']);
   if($auth !== true){ $errors = $auth; }
   else{
-    //header("Location: ".$_GET['state']);
     $response = get_access_token($_GET['code'], $_GET['state']);
-    var_dump($response);
+    if($response !== true){ $errors = $auth; }
+    else { header("Location: ".$_GET['state']); }
   }
 }
 
@@ -51,7 +51,16 @@ function get_access_token($code, $state, $client_id="https://apps.rhiaro.co.uk/b
   $info = curl_getinfo($ch);
   curl_close($ch);
   
-  return $response;
+  if(isset($response) && ($response === false || $info['http_code'] != 200)){
+    $errors["Login error"] = $info['http_code'];
+    if(curl_error($ch)){
+      $errors["curl error"] = curl_error($ch);
+    }
+    return $errors;
+  }else{
+    $_SESSION['access_token'] = $response['access_token'];
+    return true;
+  }
   
 }
 
