@@ -109,7 +109,17 @@ function form_to_json($post){
 }
 
 function post_to_endpoint($json, $endpoint){
-  return $json;
+  $ch = curl_init($endpoint);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: application/activity+json"));
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: Bearer ".$_SESSION['access_token']));
+  curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
+  $response = Array();
+  parse_str(curl_exec($ch), $response);
+  $info = curl_getinfo($ch);
+  curl_close($ch);
+  
+  return $response;
 }
 
 $locations = get_locations();
@@ -146,10 +156,10 @@ var_dump($_SESSION);
       
       <?if(isset($result)):?>
         <div>
-          <p>The following will be posted to your micropub endpoint:</p>
+          <p>The response from you your micropub endpoint:</p>
           <code><?=$endpoint?></code>
           <pre>
-            <?=$result?>
+            <? var_dump($result); ?>
           </pre>
         </div>
       <?endif?>
