@@ -2,6 +2,8 @@
 session_start();
 if(isset($_GET['logout'])){ session_unset(); session_destroy(); header("Location: /burrow"); }
 
+include "link-rel-parser.php";
+
 $base = "localhost";
 if(isset($_GET['code'])){
   $auth = auth($_GET['code'], $_GET['state']);
@@ -12,8 +14,6 @@ if(isset($_GET['code'])){
     else { header("Location: ".$_GET['state']); }
   }
 }
-
-include "link-rel-parser.php";
 
 function auth($code, $state, $client_id="https://apps.rhiaro.co.uk/burrow"){
   
@@ -42,7 +42,8 @@ function auth($code, $state, $client_id="https://apps.rhiaro.co.uk/burrow"){
 function get_access_token($code, $state, $client_id="https://apps.rhiaro.co.uk/burrow"){
   
   $params = "me={$_SESSION['me']}&code=$code&redirect_uri=".urlencode($state)."&state=".urlencode($state)."&client_id=$client_id";
-  $ch = curl_init("https://tokens.indieauth.com/token");
+  $token_ep = discover_endpoint($_SESSION['me'], "token_endpoint");
+  $ch = curl_init($token_ep);
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
   curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: application/x-www-form-urlencoded"));
   curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
