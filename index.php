@@ -18,9 +18,14 @@ if(isset($_GET['code'])){
   }
 }
 
+// VIP cache
+$vips = array("http://rhiaro.co.uk", "http://rhiaro.co.uk/", "http://tigo.rhiaro.co.uk/");
 $locations = set_default_locations();
+
 if(isset($_SESSION['locations'])){
   $locations = $_SESSION['locations'];
+}elseif(isset($_SESSION['me']) && in_array($_SESSION['me'], $vips)){
+  $locations = get_locations("http://rhiaro.co.uk/locations");
 }
 if(isset($_POST['locations_source'])){
   $fetch = get_locations($_POST['locations_source']);
@@ -170,7 +175,6 @@ if(isset($_POST['location'])){
     $errors["Not signed in"] = "You need to sign in to post.";
   }
 }
-var_dump($_SESSION);
 
 ?>
 <!doctype html>
