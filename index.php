@@ -11,8 +11,15 @@ if(isset($_GET['code'])){
   else{
     $response = get_access_token($_GET['code'], $_GET['state']);
     if($response !== true){ $errors = $auth; }
-    else { header("Location: ".$_GET['state']); }
+    else {
+      //header("Location: ".$_GET['state']);
+    }
   }
+}
+
+function dump_headers($curl, $header_line ) {
+  echo "<br>YEAH: ".$header_line; // or do whatever
+  return strlen($header_line);
 }
 
 function auth($code, $state, $client_id="https://apps.rhiaro.co.uk/burrow"){
@@ -20,10 +27,12 @@ function auth($code, $state, $client_id="https://apps.rhiaro.co.uk/burrow"){
   $params = "code=".$code."&redirect_uri=".urlencode($state)."&state=".urlencode($state)."&client_id=".$client_id;
   $ch = curl_init("https://indieauth.com/auth");
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-  curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: application/x-www-form-urlencoded"));
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: application/x-www-form-urlencoded", "Accept: application/json"));
   curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
-  $response = Array();
-  parse_str(curl_exec($ch), $response);
+  //curl_setopt($ch, CURLOPT_HEADERFUNCTION, "dump_headers");
+  $response = curl_exec($ch);
+  //var_dump($response);
+  $response = json_decode($response, true);
   $_SESSION['me'] = $response['me'];
   $info = curl_getinfo($ch);
   curl_close($ch);
