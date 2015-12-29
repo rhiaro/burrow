@@ -1,6 +1,7 @@
 <?
 session_start();
 if(isset($_GET['logout'])){ session_unset(); session_destroy(); header("Location: /burrow"); }
+if(isset($_GET['reset'])) { $_SESSION['locations'] = set_default_locations(); header("Location: /burrow"); }
 
 include "link-rel-parser.php";
 
@@ -12,9 +13,25 @@ if(isset($_GET['code'])){
     $response = get_access_token($_GET['code'], $_GET['state']);
     if($response !== true){ $errors = $auth; }
     else {
-      //header("Location: ".$_GET['state']);
+      header("Location: ".$_GET['state']);
     }
   }
+}
+
+$locations = set_default_locations();
+if(isset($_SESSION['locations'])){
+  $locations = $_SESSION['locations'];
+}
+if(isset($_POST['locations_source'])){
+  $fetch = get_locations($_POST['locations_source']);
+  if(!$fetch){
+    $errors["Problem fetching locations"] = "The locations url needs to return a single page AS2 Collection as JSON.";
+  }else{
+    $locations = $fetch;
+  }
+}
+if(isset($locations["@id"])){
+  $locations_source = $locations["@id"];
 }
 
 function dump_headers($curl, $header_line ) {
@@ -99,19 +116,33 @@ function as2(){
     );
 }
 
-function get_locations(){
-  return array("home", "office", "transit", "other", "food", "meeting", "seminar", "event", "exercise", "volunteer");
+function get_locations($source=null){
+  if($source){
+    $ch = curl_init($source);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array("Accept: application/json"));
+    $response = curl_exec($ch);
+    
+    $_SESSION['locations'] = json_decode($response, true);
+    if(is_array($_SESSION['locations']) && !empty($_SESSION['locations'])){
+      return $_SESSION['locations'];
+    }
+    curl_close($ch);
+  }
+  return false;
+}
+
+function set_default_locations(){
+  return array("items" => array(array("name" => "Home", "@id" => "https://apps.rhiaro.co.uk/burrow#home"), array("name"=>"Work", "@id" => "https://apps.rhiaro.co.uk/burrow#work"), array("name"=>"Mortal Peril", "@id" => "https://apps.rhiaro.co.uk/burrow#peril")));
 }
 
 function form_to_json($post){
   $data = as2();
-  if(in_array($post['location'], get_locations())){
-    $data['location'] = "http://rhiaro.co.uk/location/".$post['location'];
-    if(isset($post['published'])){
-      $data['published'] = $post['published'];
-    }else{
-      $data['published'] = date(DATE_ATOM);
-    }
+  $data['location'] = $post['location'];
+  if(isset($post['published'])){
+    $data['published'] = $post['published'];
+  }else{
+    $data['published'] = date(DATE_ATOM);
   }
   $json = stripslashes(json_encode($data, JSON_PRETTY_PRINT));
   return $json;
@@ -130,8 +161,6 @@ function post_to_endpoint($json, $endpoint){
   
   return $response;
 }
-
-$locations = get_locations();
 
 if(isset($_POST['location'])){
   if(isset($_SESSION['me'])){
@@ -174,8 +203,8 @@ var_dump($_SESSION);
       <?endif?>
       
       <form method="post" role="form" id="checkin" class="align-center">
-        <?foreach($locations as $location):?>
-          <p><input class="neat inner color3-bg" type="submit" value="<?=$location?>" name="location" /></p>
+        <?foreach($locations['items'] as $location):?>
+          <p><button class="neat inner color3-bg" style="border: none; width: 100%;" type="submit" value="<?=$location['@id']?>" name="location"><?=$location['name']?></button></p>
         <?endforeach?>
       </form>
       
@@ -191,6 +220,18 @@ var_dump($_SESSION);
             <input type="hidden" name="redirect_uri" value="<?=$base?><?=$_SERVER["REQUEST_URI"]?>" />
             <input type="hidden" name="state" value="<?=$base?><?=$_SERVER["REQUEST_URI"]?>" />
             <input type="hidden" name="scope" value="post" />
+          </form>
+        <?endif?>
+        
+        <h2>Customise</h2>
+        <?if(isset($locations_source)):?>
+          <p class="wee">Your locations are from <strong><?=$locations_source?></strong> <a href="?reset=1">Reset</a></p>
+        <?else:?>
+          <form method="post" class="inner wee clearfix">
+            <p>If you have or know a webpage with an archive of locations/venues you'd like on this list, enter the URL here. Currently can only read AS2 Collections, unpaged, returned in JSON or JSON-LD.</p>
+            <label for="locations_source">URL of a list of locations:</label>
+            <input id="locations_source" name="locations_source" value="http://rhiaro.co.uk/locations" />
+            <input type="submit" value="Fetch" />
           </form>
         <?endif?>
       </div>
