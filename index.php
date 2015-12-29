@@ -53,7 +53,6 @@ function auth($code, $state, $client_id="https://apps.rhiaro.co.uk/burrow"){
   curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
   //curl_setopt($ch, CURLOPT_HEADERFUNCTION, "dump_headers");
   $response = curl_exec($ch);
-  //var_dump($response);
   $response = json_decode($response, true);
   $_SESSION['me'] = $response['me'];
   $info = curl_getinfo($ch);
