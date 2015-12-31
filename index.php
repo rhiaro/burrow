@@ -1,4 +1,5 @@
 <?
+error_reporting(0);
 session_start();
 if(isset($_GET['logout'])){ session_unset(); session_destroy(); header("Location: /burrow"); }
 if(isset($_GET['reset'])) { $_SESSION['locations'] = set_default_locations(); header("Location: /burrow"); }
@@ -20,13 +21,14 @@ if(isset($_GET['code'])){
 
 // VIP cache
 $vips = array("http://rhiaro.co.uk", "http://rhiaro.co.uk/", "http://tigo.rhiaro.co.uk/");
-$locations = set_default_locations();
-
-if(isset($_SESSION['locations'])){
-  $locations = $_SESSION['locations'];
-}elseif(isset($_SESSION['me']) && in_array($_SESSION['me'], $vips)){
+if(isset($_SESSION['me']) && in_array($_SESSION['me'], $vips)){
   $locations = get_locations("http://rhiaro.co.uk/locations");
+}elseif(!isset($_SESSION['locations'])){
+  $locations = set_default_locations();
+}else{
+  $locations = $_SESSION['locations'];
 }
+
 if(isset($_POST['locations_source'])){
   $fetch = get_locations($_POST['locations_source']);
   if(!$fetch){
@@ -128,7 +130,6 @@ function get_locations($source=null){
     $response = curl_exec($ch);
     
     $_SESSION['locations'] = json_decode($response, true);
-    var_dump($_SESSION['locations']);
     if(is_array($_SESSION['locations']) && !empty($_SESSION['locations'])){
       return $_SESSION['locations'];
     }
