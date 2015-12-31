@@ -1,5 +1,4 @@
 <?
-error_reporting(0);
 session_start();
 if(isset($_GET['logout'])){ session_unset(); session_destroy(); header("Location: /burrow"); }
 if(isset($_GET['reset'])) { $_SESSION['locations'] = set_default_locations(); header("Location: /burrow"); }
@@ -144,7 +143,7 @@ function set_default_locations(){
 
 function form_to_json($post){
   $data = as2();
-  $data['location'] = $post['location'];
+  $data['location'] = array("@id" => $post['location']);
   if(isset($post['published'])){
     $data['published'] = $post['published'];
   }else{
@@ -159,13 +158,19 @@ function post_to_endpoint($json, $endpoint){
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
   curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: application/activity+json"));
   curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: Bearer ".$_SESSION['access_token']));
+  curl_setopt($ch, CURLOPT_HEADER, true);
   curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
-  $response = Array();
-  parse_str(curl_exec($ch), $response);
+  $response = curl_exec($ch);
   $info = curl_getinfo($ch);
   curl_close($ch);
   
-  return $response;
+  $code = $info['http_code'];
+  if($code == "201") {
+    $matches = array();
+    preg_match('/Location:(.*?)\n/', $response, $matches);
+  }
+  
+  return array("location"=>$matches, "code"=>$code, "response"=>$response);
 }
 
 if(isset($_POST['location'])){
@@ -202,8 +207,13 @@ if(isset($_POST['location'])){
         <div>
           <p>The response from you your micropub endpoint:</p>
           <code><?=$endpoint?></code>
+          <?if($result['code'] != "201"):?>
+            <p class="fail">Nothing created, error code <strong><?=$result['code']?></strong></p>
+          <?else:?>
+            <p class="win">Post created.. <strong><?=$result['location'][0]?></strong></p>
+          <?endif?>
           <pre>
-            <? var_dump($result); ?>
+            <? var_dump($result['response']); ?>
           </pre>
         </div>
       <?endif?>
