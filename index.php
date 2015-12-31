@@ -5,7 +5,7 @@ if(isset($_GET['reset'])) { $_SESSION['locations'] = set_default_locations(); he
 
 include "link-rel-parser.php";
 
-$base = "localhost";
+$base = "https://apps.rhiaro.co.uk/burrow";
 if(isset($_GET['code'])){
   $auth = auth($_GET['code'], $_GET['state']);
   if($auth !== true){ $errors = $auth; }
@@ -128,6 +128,7 @@ function get_locations($source=null){
     $response = curl_exec($ch);
     
     $_SESSION['locations'] = json_decode($response, true);
+    var_dump($_SESSION['locations']);
     if(is_array($_SESSION['locations']) && !empty($_SESSION['locations'])){
       return $_SESSION['locations'];
     }
@@ -137,7 +138,7 @@ function get_locations($source=null){
 }
 
 function set_default_locations(){
-  return array("items" => array(array("name" => "Home", "@id" => "https://apps.rhiaro.co.uk/burrow#home"), array("name"=>"Work", "@id" => "https://apps.rhiaro.co.uk/burrow#work"), array("name"=>"Mortal Peril", "@id" => "https://apps.rhiaro.co.uk/burrow#peril")));
+  $_SESSION['locations'] = array("items" => array(array("name" => "Home", "@id" => "https://apps.rhiaro.co.uk/burrow#home"), array("name"=>"Work", "@id" => "https://apps.rhiaro.co.uk/burrow#work"), array("name"=>"Mortal Peril", "@id" => "https://apps.rhiaro.co.uk/burrow#peril")));
 }
 
 function form_to_json($post){
@@ -180,8 +181,9 @@ if(isset($_POST['location'])){
 <html>
   <head>
     <title>Burrow</title>
-    <link rel="stylesheet" type="text/css" href="http://rhiaro.co.uk/css/normalise.min.css" />
-    <link rel="stylesheet" type="text/css" href="http://rhiaro.co.uk/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://apps.rhiaro.co.uk/css/normalize.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://apps.rhiaro.co.uk/css/main.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
     <main class="w1of2 center">
@@ -220,13 +222,14 @@ if(isset($_POST['location'])){
             <input id="indie_auth_url" type="text" name="me" placeholder="yourdomain.com" />
             <input type="submit" value="signin" />
             <input type="hidden" name="client_id" value="http://rhiaro.co.uk" />
-            <input type="hidden" name="redirect_uri" value="<?=$base?><?=$_SERVER["REQUEST_URI"]?>" />
-            <input type="hidden" name="state" value="<?=$base?><?=$_SERVER["REQUEST_URI"]?>" />
+            <input type="hidden" name="redirect_uri" value="<?=$base?>" />
+            <input type="hidden" name="state" value="<?=$base?>" />
             <input type="hidden" name="scope" value="post" />
           </form>
         <?endif?>
         
         <h2>Customise</h2>
+        <h3>Locations</h3>
         <?if(isset($locations_source)):?>
           <p class="wee">Your locations are from <strong><?=$locations_source?></strong> <a href="?reset=1">Reset</a></p>
         <?else:?>
@@ -237,6 +240,16 @@ if(isset($_POST['location'])){
             <input type="submit" value="Fetch" />
           </form>
         <?endif?>
+        <h3>Post...</h3>
+        <form method="post" class="inner wee clearfix">
+          <select name="posttype">
+            <option value="as2" selected>AS2 JSON</option>
+            <option value="mp" disabled>Micropub (form-encoded)</option>
+            <option value="mp" disabled>Micropub (JSON)</option>
+            <option value="ttl" disabled>Turtle</option>
+          </select>
+          <input type="submit" value="Save" />
+        </form>
       </div>
     </main>
   </body>
