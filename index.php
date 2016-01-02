@@ -1,5 +1,6 @@
 <?
 session_start();
+date_default_timezone_set(file_get_contents("http://rhiaro.co.uk/tz"));
 if(isset($_GET['logout'])){ session_unset(); session_destroy(); header("Location: /burrow"); }
 if(isset($_GET['reset'])) { $_SESSION['locations'] = set_default_locations(); header("Location: /burrow"); }
 
@@ -144,11 +145,7 @@ function set_default_locations(){
 function form_to_json($post){
   $data = as2();
   $data['location'] = array("@id" => $post['location']);
-  if(isset($post['published'])){
-    $data['published'] = $post['published'];
-  }else{
-    $data['published'] = date(DATE_ATOM);
-  }
+  $data['published'] = $post['year']."-".$post['month']."-".$post['day']."T".$post['time'].$post['zone'];
   $json = stripslashes(json_encode($data, JSON_PRETTY_PRINT));
   return $json;
 }
@@ -222,6 +219,24 @@ if(isset($_POST['location'])){
         <?foreach($locations['items'] as $location):?>
           <p><button class="neat inner color3-bg" style="border: none; width: 100%;" type="submit" value="<?=$location['@id']?>" name="location"><?=$location['name']?></button></p>
         <?endforeach?>
+        <p>
+          <select name="year" id="year">
+            <option value="2016" selected>2016</option>
+            <option value="2016">2015</option>
+          </select>
+          <select name="month" id="month">
+            <?for($i=1;$i<=12;$i++):?>
+              <option value="<?=date("m", strtotime("2016-$i-01"))?>"<?=(date("n") == $i) ? " selected" : ""?>><?=date("M", strtotime("2016-$i-01"))?></option>
+            <?endfor?>
+          </select>
+          <select name="day" id="day">
+            <?for($i=1;$i<=31;$i++):?>
+              <option value="<?=date("d", strtotime("2016-01-$i"))?>"<?=(date("j") == $i) ? " selected" : ""?>><?=date("d", strtotime("2016-01-$i"))?></option>
+            <?endfor?>
+          </select>
+          <input type="text" name="time" id="time" value="<?=date("H:i:s")?>" />
+          <input type="text" name="zone" id="zone" value="<?=date("P")?>" />
+        </p>
       </form>
       
       <div class="color3-bg inner">
@@ -263,5 +278,12 @@ if(isset($_POST['location'])){
         </form>
       </div>
     </main>
+    <footer class="w1of2 center">
+      <p><a href="https://github.com/rhiaro/burrow">Code</a> | <a href="https://github.com/rhiaro/burrow/issues">Issues</a>
+      <?if(isset($_SESSION['access_token'])):?>
+        | <a href="https://apps.rhiaro.co.uk/burrow?token=<?=$_SESSION['access_token']?>">Quicklink</a>
+      <?endif?>
+      </p>
+    </footer>
   </body>
 </html>
