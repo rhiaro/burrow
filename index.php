@@ -21,7 +21,7 @@ if(isset($_GET['code'])){
 
 // VIP cache
 $vips = array("https://rhiaro.co.uk", "https://rhiaro.co.uk/", "http://tigo.rhiaro.co.uk/");
-if(isset($_SESSION['me']) && in_array($_SESSION['me'], $vips)){
+if(isset($_SESSION['me']) && in_array($_SESSION['me'], $vips) && !isset($_SESSION['locations'])){
   $locations = get_locations("https://rhiaro.co.uk/locations");
 }elseif(!isset($_SESSION['locations'])){
   $locations = set_default_locations();
@@ -37,8 +37,8 @@ if(isset($_POST['locations_source'])){
     $locations = $fetch;
   }
 }
-if(isset($locations["@id"])){
-  $locations_source = $locations["@id"];
+if(isset($locations["id"])){
+  $locations_source = $locations["id"];
 }
 
 function dump_headers($curl, $header_line ) {
@@ -128,9 +128,21 @@ function get_locations($source=null){
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_HTTPHEADER, array("Accept: application/activity+json"));
     $response = curl_exec($ch);
-    
+
     $_SESSION['locations'] = json_decode($response, true);
     if(is_array($_SESSION['locations']) && !empty($_SESSION['locations'])){
+      
+      foreach($_SESSION['locations']['items'] as $i => $location){
+        if(!is_array($location)){
+          $_SESSION['locations']['items'][$i] = array("id" => $location);
+        }
+        if(!isset($_SESSION['locations']['items'][$i]['name'])){
+          $data = get_location($_SESSION['locations']['items'][$i]['id']);
+          unset($data['@context']);
+          $_SESSION['locations']['items'][$i] = $data;
+        }
+      }
+
       return $_SESSION['locations'];
     }
     curl_close($ch);
@@ -138,13 +150,23 @@ function get_locations($source=null){
   return false;
 }
 
+function get_location($location){
+  $ch = curl_init($location);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array("Accept: application/activity+json"));
+  $response = curl_exec($ch);
+
+  return json_decode($response, true);
+  curl_close($ch);
+}
+
 function set_default_locations(){
-  $_SESSION['locations'] = array("items" => array(array("name" => "Home", "@id" => "https://apps.rhiaro.co.uk/burrow#home"), array("name"=>"Work", "@id" => "https://apps.rhiaro.co.uk/burrow#work"), array("name"=>"Mortal Peril", "@id" => "https://apps.rhiaro.co.uk/burrow#peril")));
+  $_SESSION['locations'] = array("items" => array(array("name" => "Home", "id" => "https://apps.rhiaro.co.uk/burrow#home"), array("name"=>"Work", "id" => "https://apps.rhiaro.co.uk/burrow#work"), array("name"=>"Mortal Peril", "id" => "https://apps.rhiaro.co.uk/burrow#peril")));
 }
 
 function form_to_json($post){
   $data = as2();
-  $data['location'] = array("@id" => $post['location']);
+  $data['location'] = array("id" => $post['location']);
   $data['published'] = $post['year']."-".$post['month']."-".$post['day']."T".$post['time'].$post['zone'];
   $json = stripslashes(json_encode($data, JSON_PRETTY_PRINT));
   return $json;
@@ -217,7 +239,7 @@ if(isset($_POST['location'])){
       
       <form method="post" role="form" id="checkin" class="align-center">
         <?foreach($locations['items'] as $location):?>
-          <p><button class="neat inner color3-bg" style="border: none; width: 100%;" type="submit" value="<?=$location['@id']?>" name="location"><?=$location['name']?></button></p>
+          <p><button class="neat inner color3-bg" style="border: none; width: 100%;" type="submit" value="<?=$location['id']?>" name="location"><?=$location['name']?></button></p>
         <?endforeach?>
         <p>
           <select name="year" id="year">
