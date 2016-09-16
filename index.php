@@ -1,6 +1,6 @@
 <?
 session_start();
-date_default_timezone_set(file_get_contents("http://rhiaro.co.uk/tz"));
+date_default_timezone_set(file_get_contents("https://rhiaro.co.uk/tz"));
 if(isset($_GET['logout'])){ session_unset(); session_destroy(); header("Location: /burrow"); }
 if(isset($_GET['reset'])) { $_SESSION['locations'] = set_default_locations(); header("Location: /burrow"); }
 
@@ -20,9 +20,9 @@ if(isset($_GET['code'])){
 }
 
 // VIP cache
-$vips = array("http://rhiaro.co.uk", "http://rhiaro.co.uk/", "http://tigo.rhiaro.co.uk/");
+$vips = array("https://rhiaro.co.uk", "https://rhiaro.co.uk/", "http://tigo.rhiaro.co.uk/");
 if(isset($_SESSION['me']) && in_array($_SESSION['me'], $vips)){
-  $locations = get_locations("http://rhiaro.co.uk/locations");
+  $locations = get_locations("https://rhiaro.co.uk/locations");
 }elseif(!isset($_SESSION['locations'])){
   $locations = set_default_locations();
 }else{
@@ -126,7 +126,7 @@ function get_locations($source=null){
   if($source){
     $ch = curl_init($source);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array("Accept: application/json"));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array("Accept: application/activity+json"));
     $response = curl_exec($ch);
     
     $_SESSION['locations'] = json_decode($response, true);
@@ -247,7 +247,7 @@ if(isset($_POST['location'])){
             <label for="indie_auth_url">Domain:</label>
             <input id="indie_auth_url" type="text" name="me" placeholder="yourdomain.com" />
             <input type="submit" value="signin" />
-            <input type="hidden" name="client_id" value="http://rhiaro.co.uk" />
+            <input type="hidden" name="client_id" value="https://rhiaro.co.uk" />
             <input type="hidden" name="redirect_uri" value="<?=$base?>" />
             <input type="hidden" name="state" value="<?=$base?>" />
             <input type="hidden" name="scope" value="post" />
@@ -262,7 +262,7 @@ if(isset($_POST['location'])){
           <form method="post" class="inner wee clearfix">
             <p>If you have or know a webpage with an archive of locations/venues you'd like on this list, enter the URL here. Currently can only read AS2 Collections, unpaged, returned in JSON or JSON-LD.</p>
             <label for="locations_source">URL of a list of locations:</label>
-            <input id="locations_source" name="locations_source" value="http://rhiaro.co.uk/locations" />
+            <input id="locations_source" name="locations_source" value="https://rhiaro.co.uk/locations" />
             <input type="submit" value="Fetch" />
           </form>
         <?endif?>
