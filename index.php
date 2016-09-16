@@ -239,7 +239,7 @@ if(isset($_POST['location'])){
       
       <form method="post" role="form" id="checkin" class="align-center">
         <?foreach($locations['items'] as $location):?>
-          <p><button class="neat inner color3-bg" style="border: none; width: 100%;" type="submit" value="<?=$location['id']?>" name="location"><?=$location['name']?></button></p>
+          <p><button class="neat inner color3-bg" style="border: none; width: 100%;<?=isset($location["https://terms.rhiaro.co.uk/view#color"]) ? " background-color: ".$location["https://terms.rhiaro.co.uk/view#color"].";" : ""?>" type="submit" value="<?=$location['id']?>" name="location"><?=$location['name']?></button></p>
         <?endforeach?>
         <p>
           <select name="year" id="year">
