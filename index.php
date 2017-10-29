@@ -162,10 +162,12 @@ function get_location($location){
 
 function set_default_locations(){
   $_SESSION['locations'] = array("items" => array(array("name" => "Home", "id" => "https://apps.rhiaro.co.uk/burrow#home"), array("name"=>"Work", "id" => "https://apps.rhiaro.co.uk/burrow#work"), array("name"=>"Mortal Peril", "id" => "https://apps.rhiaro.co.uk/burrow#peril")));
+  return $_SESSION['locations'];
 }
 
 function form_to_json($post){
   $data = as2();
+  $data['type'] = "Arrive";
   $data['location'] = array("id" => $post['location']);
   $data['published'] = $post['year']."-".$post['month']."-".$post['day']."T".$post['time'].$post['zone'];
   $json = stripslashes(json_encode($data, JSON_PRETTY_PRINT));
