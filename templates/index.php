@@ -2,12 +2,21 @@
 <html>
   <head>
     <title>Burrow</title>
-    <link rel="stylesheet" type="text/css" href="https://apps.rhiaro.co.uk/css/normalize.min.css" />
-    <link rel="stylesheet" type="text/css" href="https://apps.rhiaro.co.uk/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="../../views/normalize.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../views/core.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type="text/css">
+      main {
+        width: 50%; margin-left: auto; margin-right: auto;
+      }
+      pre {
+        max-height: 300px;
+        overflow: scroll;
+      }
+    </style>
   </head>
   <body>
-    <main class="w1of2 center">
+    <main>
       <h1>Burrow</h1>
       
       <?if(isset($errors)):?>
@@ -20,15 +29,15 @@
       
       <?if(isset($result)):?>
         <div>
-          <p>The response from you your micropub endpoint:</p>
+          <p>The response from your endpoint:</p>
           <code><?=$endpoint?></code>
-          <?if($result['code'] != "201"):?>
-            <p class="fail">Nothing created, error code <strong><?=$result['code']?></strong></p>
+          <?if($result->status_code != "201"):?>
+            <p class="fail">Nothing created, error code <strong><?=$result->status_code?></strong></p>
           <?else:?>
-            <p class="win">Post created.. <strong><?=$result['location'][0]?></strong></p>
+            <p class="win">Post created.. <strong><?=$result->headers['location']?></strong></p>
           <?endif?>
           <pre>
-            <? var_dump($result['response']); ?>
+            <? var_dump($result); ?>
           </pre>
         </div>
       <?endif?>
@@ -55,6 +64,15 @@
           <input type="text" name="time" id="time" value="<?=date("H:i:s")?>" />
           <input type="text" name="zone" id="zone" value="<?=date("P")?>" />
         </p>
+        <hr/>
+        <!-- temp -->
+        <select name="endpoint_uri">
+          <option value="https://rhiaro.co.uk/outgoing/">rhiaro.co.uk</option>
+          <option value="http://localhost/outgoing/">localhost</option>
+        </select>
+        <input type="password" name="endpoint_key" />
+        <!--/ temp -->
+        <hr/>
       </form>
       
       <div class="color3-bg inner">

@@ -1,8 +1,10 @@
 <?php
 namespace Rhiaro;
 
-use EasyRdf_Graph;
 use Requests;
+use EasyRdf_Graph;
+use EasyRdf_Literal;
+use ML\JsonLD\JsonLD;
 
 function set_default_locations(){
     $_SESSION['locations'] = array(
@@ -31,6 +33,34 @@ function get_locations($url){
         }
     }
     return $_SESSION['locations'];
+}
+
+function make_payload($form_request){
+    global $ns;
+    $location = $form_request['location'];
+    $date_str = $form_request['year']."-".$form_request['month']."-".$form_request['day']."T".$form_request['time'].$form_request['zone'];
+    $date = new EasyRdf_Literal($date_str, null, 'xsd:dateTime');
+    $g = new EasyRdf_Graph();
+    $node = $g->newBNode();
+    $g->addType($node, 'as:Arrive');
+    $g->addResource($node, 'as:location', $location);
+    $g->addLiteral($node, 'as:published', $date);
+    $jsonld = $g->serialise('jsonld');
+
+    $context = $ns->get('as');
+    $options = array('compactArrays' => true);
+    $compacted = JsonLD::compact($jsonld, $context, $options);
+
+    return JsonLD::toString($compacted, true);
+}
+
+function post_to_endpoint($form_request){
+    $endpoint = $form_request['endpoint_uri'];
+    $key = $form_request['endpoint_key'];
+    $headers = array('Content-Type' => 'application/ld+json', 'Authorization' => $key);
+    $payload = make_payload($form_request);
+    $response = Requests::post($endpoint, $headers, $payload);
+    return $response;
 }
 
 ?>
