@@ -102,16 +102,6 @@
             <input type="submit" value="Fetch" />
           </form>
         <?endif?>
-        <h3>Post...</h3>
-        <form method="post" class="inner wee clearfix">
-          <select name="posttype">
-            <option value="as2" selected>AS2 JSON</option>
-            <option value="mp" disabled>Micropub (form-encoded)</option>
-            <option value="mp" disabled>Micropub (JSON)</option>
-            <option value="ttl" disabled>Turtle</option>
-          </select>
-          <input type="submit" value="Save" />
-        </form>
       </div>
     </main>
     <footer class="w1of2 center">
