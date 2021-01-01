@@ -57,9 +57,9 @@
         <?endforeach?>
         <p>
           <select name="year" id="year">
-            <option value="2020" selected>2020</option>
-            <option value="2019">2019</option>
-            <option value="2018">2018</option>
+            <?for($i=date("Y");$i>=2018;$i--):?>
+              <option value="<?=$i?>"<?=($i==$_POST['year']) ? " selected" : ""?>><?=$i?></option>
+            <?endfor?>
           </select>
           <select name="month" id="month">
             <?for($i=1;$i<=12;$i++):?>
