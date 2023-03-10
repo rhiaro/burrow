@@ -8,22 +8,22 @@ use ML\JsonLD\JsonLD;
 
 function set_default_locations(){
     $_SESSION['locations'] = array(
-        array("name" => "Home", "id" => "https://apps.rhiaro.co.uk/burrow#home"), 
-        array("name"=>"Work", "id" => "https://apps.rhiaro.co.uk/burrow#work"), 
+        array("name" => "Home", "id" => "https://apps.rhiaro.co.uk/burrow#home"),
+        array("name"=>"Work", "id" => "https://apps.rhiaro.co.uk/burrow#work"),
         array("name"=>"Mortal Peril", "id" => "https://apps.rhiaro.co.uk/burrow#peril")
     );
     return $_SESSION['locations'];
 }
 
 function get_locations($url){
-    $response = Requests::get($url, array('Accept' => 'application/ld+json'));
-    $g = new EasyRdf_Graph($url);
+    $response = \WpOrg\Requests\Requests::get($url, array('Accept' => 'application/ld+json'));
+    $g = new \EasyRdf\Graph($url);
     $g->parse($response->body, 'jsonld');
-    
+
     if(isset($_SESSION['locations'])){
         unset($_SESSION['locations']);
     }
-    
+
     $resources = $g->resources();
     foreach($resources as $uri => $resource){
         if($resource->isA('as:Place')){
@@ -39,8 +39,8 @@ function make_payload($form_request){
     global $ns;
     $location = $form_request['location'];
     $date_str = $form_request['year']."-".$form_request['month']."-".$form_request['day']."T".$form_request['time'].$form_request['zone'];
-    $date = new EasyRdf_Literal($date_str, null, 'xsd:dateTime');
-    $g = new EasyRdf_Graph();
+    $date = new \EasyRdf\Literal($date_str, null, 'xsd:dateTime');
+    $g = new \EasyRdf\Graph();
     $node = $g->newBNode();
     $g->addType($node, 'as:Arrive');
     $g->addResource($node, 'as:location', $location);
@@ -59,7 +59,7 @@ function post_to_endpoint($form_request){
     $key = $form_request['endpoint_key'];
     $headers = array('Content-Type' => 'application/ld+json', 'Authorization' => $key);
     $payload = make_payload($form_request);
-    $response = Requests::post($endpoint, $headers, $payload);
+    $response = \WpOrg\Requests\Requests::post($endpoint, $headers, $payload);
     return $response;
 }
 

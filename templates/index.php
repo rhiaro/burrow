@@ -27,7 +27,7 @@
   <body>
     <main>
       <h1>Burrow</h1>
-      
+
       <?if(isset($errors)):?>
         <div class="fail">
           <?foreach($errors as $key=>$error):?>
@@ -35,7 +35,7 @@
           <?endforeach?>
         </div>
       <?endif?>
-      
+
       <?if(isset($result)):?>
         <div>
           <p>The response from your endpoint:</p>
@@ -50,7 +50,7 @@
           </pre>
         </div>
       <?endif?>
-      
+
       <form method="post" role="form" id="checkin" class="align-center">
         <?foreach($locations as $location):?>
           <p><button class="neat inner color3-bg" style="border: none; width: 100%; padding: 1em;<?=isset($location["color"]) ? " background-color: ".$location["color"].";" : ""?>" type="submit" value="<?=$location['id']?>" name="location"><?=$location['name']?></button></p>
@@ -58,7 +58,7 @@
         <p>
           <select name="year" id="year">
             <?for($i=date("Y");$i>=2018;$i--):?>
-              <option value="<?=$i?>"<?=($i==$_POST['year']) ? " selected" : ""?>><?=$i?></option>
+              <option value="<?=$i?>"<?=(isset($_POST['year']) && $i==$_POST['year']) ? " selected" : ""?>><?=$i?></option>
             <?endfor?>
           </select>
           <select name="month" id="month">
@@ -85,22 +85,9 @@
         <!--/ temp -->
         <hr/>
       </form>
-      
+
       <div class="color3-bg inner">
-        <?if(isset($_SESSION['me'])):?>
-          <p class="wee">You are logged in as <strong><?=$_SESSION['me']?></strong> <a href="?logout=1">Logout</a></p>
-        <?else:?>
-          <form action="https://indieauth.com/auth" method="get" class="inner clearfix">
-            <label for="indie_auth_url">Domain:</label>
-            <input id="indie_auth_url" type="text" name="me" placeholder="yourdomain.com" />
-            <input type="submit" value="signin" />
-            <input type="hidden" name="client_id" value="https://rhiaro.co.uk" />
-            <input type="hidden" name="redirect_uri" value="<?=$base?>" />
-            <input type="hidden" name="state" value="<?=$base?>" />
-            <input type="hidden" name="scope" value="post" />
-          </form>
-        <?endif?>
-        
+
         <h2>Customise</h2>
         <h3>Locations</h3>
         <?if(isset($locations_source)):?>
@@ -166,7 +153,7 @@
 
       });
 
-      
+
     </script>
   </body>
 </html>
